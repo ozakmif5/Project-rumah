@@ -73,9 +73,25 @@ document.addEventListener("DOMContentLoaded", function () {
         laporan: laporanLink,
     };
 
-    const attendanceRecords = [];
-    const materialRecords = [];
-    const progressRecords = [];
+    // ====== LOCAL STORAGE FUNCTIONS ======
+    function loadDataFromStorage() {
+        attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+        materialRecords = JSON.parse(localStorage.getItem('materialRecords')) || [];
+        progressRecords = JSON.parse(localStorage.getItem('progressRecords')) || [];
+    }
+
+    function saveToStorage() {
+        localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+        localStorage.setItem('materialRecords', JSON.stringify(materialRecords));
+        localStorage.setItem('progressRecords', JSON.stringify(progressRecords));
+    }
+
+    // Load data dari storage saat page load
+    let attendanceRecords = [];
+    let materialRecords = [];
+    let progressRecords = [];
+    loadDataFromStorage();
+
     let editingIndex = null;
     let progressEditingIndex = null;
 
@@ -302,6 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 attendanceRecords.unshift(record);
             }
 
+            saveToStorage();  // 💾 Simpan ke storage
             renderAttendanceTable();
             renderKehadiranSection();
             renderPayrollSummary();
@@ -322,6 +339,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             materialRecords.unshift({ name, description, price });
+            saveToStorage();  // 💾 Simpan ke storage
             renderMaterialTable();
             renderDashboardMaterialTable();
             updateMaterialTotals();
@@ -356,6 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 progressRecords.unshift(record);
             }
 
+            saveToStorage();  // 💾 Simpan ke storage
             renderProgressTable();
             renderOverallProgress();
             resetProgressForm();
@@ -414,6 +433,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     record.paid = payState;
                 }
             });
+            saveToStorage();  // 💾 Simpan ke storage
             renderPayrollSummary();
         });
     }

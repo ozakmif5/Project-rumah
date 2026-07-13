@@ -1,4 +1,95 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // ====== DATABASE SETUP ======
+    const DB_NAME = 'RenovRumahDB';
+    const STORE_NAMES = {
+        attendance: 'attendanceRecords',
+        material: 'materialRecords',
+        progress: 'progressRecords'
+    };
+
+    let db;
+    
+    // Initialize IndexedDB
+    function initDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+            
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                db = request.result;
+                resolve(db);
+            };
+            
+            request.onupgradeneeded = (event) => {
+                db = event.target.result;
+                
+                // Create object stores if they don't exist
+                if (!db.objectStoreNames.contains(STORE_NAMES.attendance)) {
+                    db.createObjectStore(STORE_NAMES.attendance, { keyPath: 'id', autoIncrement: true });
+                }
+                if (!db.objectStoreNames.contains(STORE_NAMES.material)) {
+                    db.createObjectStore(STORE_NAMES.material, { keyPath: 'id', autoIncrement: true });
+                }
+                if (!db.objectStoreNames.contains(STORE_NAMES.progress)) {
+                    db.createObjectStore(STORE_NAMES.progress, { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        });
+    }
+
+    // Save records to IndexedDB
+    function saveRecordsToDb(storeName, records) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            
+            // Clear existing data
+            store.clear();
+            
+            // Add new records
+            records.forEach(record => {
+                store.add(record);
+            });
+            
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error);
+        });
+    }
+
+    // Load records from IndexedDB
+    function loadRecordsFromDb(storeName) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+            
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async function loadDataFromDatabase() {
+        try {
+            attendanceRecords = await loadRecordsFromDb(STORE_NAMES.attendance);
+            materialRecords = await loadRecordsFromDb(STORE_NAMES.material);
+            progressRecords = await loadRecordsFromDb(STORE_NAMES.progress);
+        } catch (error) {
+            console.warn('Error loading from database:', error);
+        }
+    }
+
+    async function saveToDatabase() {
+        try {
+            await saveRecordsToDb(STORE_NAMES.attendance, attendanceRecords);
+            await saveRecordsToDb(STORE_NAMES.material, materialRecords);
+            await saveRecordsToDb(STORE_NAMES.progress, progressRecords);
+        } catch (error) {
+            console.warn('Error saving to database:', error);
+        }
+    }
+
+    // ====== END DATABASE SETUP ======
+
     const pekerjaToggle = document.getElementById("pekerjaToggle");
     const pekerjaSubmenu = document.getElementById("pekerjaSubmenu");
     const dashboardLink = document.getElementById("dashboardLink");
@@ -73,25 +164,9 @@ document.addEventListener("DOMContentLoaded", function () {
         laporan: laporanLink,
     };
 
-    // ====== LOCAL STORAGE FUNCTIONS ======
-    function loadDataFromStorage() {
-        attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
-        materialRecords = JSON.parse(localStorage.getItem('materialRecords')) || [];
-        progressRecords = JSON.parse(localStorage.getItem('progressRecords')) || [];
-    }
-
-    function saveToStorage() {
-        localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
-        localStorage.setItem('materialRecords', JSON.stringify(materialRecords));
-        localStorage.setItem('progressRecords', JSON.stringify(progressRecords));
-    }
-
-    // Load data dari storage saat page load
     let attendanceRecords = [];
     let materialRecords = [];
     let progressRecords = [];
-    loadDataFromStorage();
-
     let editingIndex = null;
     let progressEditingIndex = null;
 
@@ -275,7 +350,6 @@ document.addEventListener("DOMContentLoaded", function () {
         renderLaporanTable();
     }
 
-
     function setDefaultDate() {
         const today = new Date();
         const dateValue = today.toISOString().slice(0, 10);
@@ -318,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 attendanceRecords.unshift(record);
             }
 
-            saveToStorage();  // 💾 Simpan ke storage
+            saveToDatabase();
             renderAttendanceTable();
             renderKehadiranSection();
             renderPayrollSummary();
@@ -339,7 +413,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             materialRecords.unshift({ name, description, price });
-            saveToStorage();  // 💾 Simpan ke storage
+            saveToDatabase();
             renderMaterialTable();
             renderDashboardMaterialTable();
             updateMaterialTotals();
@@ -374,7 +448,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 progressRecords.unshift(record);
             }
 
-            saveToStorage();  // 💾 Simpan ke storage
+            saveToDatabase();
             renderProgressTable();
             renderOverallProgress();
             resetProgressForm();
@@ -433,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     record.paid = payState;
                 }
             });
-            saveToStorage();  // 💾 Simpan ke storage
+            saveToDatabase();
             renderPayrollSummary();
         });
     }
@@ -749,14 +823,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    setDefaultDate();
-    renderAttendanceTable();
-    renderKehadiranSection();
-    renderPayrollSummary();
-    renderMaterialTable();
-    renderDashboardMaterialTable();
-    renderProgressTable();
-    renderOverallProgress();
-    updateMaterialTotals();
-    showSection("dashboard");
+    // Initialize app
+    async function initApp() {
+        try {
+            await initDatabase();
+            await loadDataFromDatabase();
+            setDefaultDate();
+            renderAttendanceTable();
+            renderKehadiranSection();
+            renderPayrollSummary();
+            renderMaterialTable();
+            renderDashboardMaterialTable();
+            renderProgressTable();
+            renderOverallProgress();
+            updateMaterialTotals();
+            showSection("dashboard");
+        } catch (error) {
+            console.error('Error initializing app:', error);
+        }
+    }
+
+    initApp();
 });

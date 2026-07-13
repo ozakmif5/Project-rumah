@@ -471,21 +471,29 @@
             <div class="card shadow border-0 mb-4">
                 <div class="card-body">
                     <h5>Tambah Material</h5>
-                    <p class="text-muted">Masukkan nama material, deskripsi, dan harga untuk mencatat pengeluaran material.</p>
+                    <p class="text-muted">Masukkan nama material, deskripsi, quantity, harga satuan. Total harga akan dihitung otomatis.</p>
                     <form id="materialForm" class="row g-3 align-items-end">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="materialName" class="form-label">Nama Material</label>
                             <input type="text" id="materialName" class="form-control" placeholder="Contoh: Semen">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label for="materialDescription" class="form-label">Deskripsi</label>
-                            <input type="text" id="materialDescription" class="form-control" placeholder="Contoh: Semen Portland 50kg">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="materialPrice" class="form-label">Harga</label>
-                            <input type="number" id="materialPrice" class="form-control" placeholder="0">
+                            <input type="text" id="materialDescription" class="form-control" placeholder="Contoh: Portland 50kg">
                         </div>
                         <div class="col-md-1">
+                            <label for="materialQuantity" class="form-label">Qty</label>
+                            <input type="number" id="materialQuantity" class="form-control" placeholder="0" min="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="materialUnitPrice" class="form-label">Harga Satuan</label>
+                            <input type="number" id="materialUnitPrice" class="form-control" placeholder="0" min="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="materialTotalPrice" class="form-label">Total Harga</label>
+                            <input type="number" id="materialTotalPrice" class="form-control" placeholder="0" disabled>
+                        </div>
+                        <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">Tambah</button>
                         </div>
                     </form>
@@ -500,12 +508,15 @@
                                 <tr>
                                     <th>Nama</th>
                                     <th>Deskripsi</th>
-                                    <th>Harga</th>
+                                    <th>Qty</th>
+                                    <th>Harga Satuan</th>
+                                    <th>Total Harga</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="materialTableBody">
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted">Belum ada material.</td>
+                                    <td colspan="6" class="text-center text-muted">Belum ada material.</td>
                                 </tr>
                             </tbody>
                         </table>

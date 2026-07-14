@@ -160,8 +160,17 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        attendanceTableBody.innerHTML = attendanceRecords
+        // Sort by date in ascending order
+        const sortedRecords = [...attendanceRecords].sort((a, b) => {
+            const dateA = new Date(a.rawDate || a.date);
+            const dateB = new Date(b.rawDate || b.date);
+            return dateA - dateB;
+        });
+
+        attendanceTableBody.innerHTML = sortedRecords
             .map((record, index) => {
+                // Find original index in attendanceRecords for edit functionality
+                const originalIndex = attendanceRecords.indexOf(record);
                 return `
                     <tr>
                         <td>${record.name}</td>
@@ -169,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>Rp${record.salary.toLocaleString('id-ID')}</td>
                         <td>${record.date}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-outline-primary edit-attendance-btn" data-index="${index}">Edit</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary edit-attendance-btn" data-index="${originalIndex}">Edit</button>
                         </td>
                     </tr>
                 `;
@@ -195,7 +204,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        attendanceSummaryBody.innerHTML = attendanceRecords
+        // Sort by date in ascending order
+        const sortedRecords = [...attendanceRecords].sort((a, b) => {
+            const dateA = new Date(a.rawDate || a.date);
+            const dateB = new Date(b.rawDate || b.date);
+            return dateA - dateB;
+        });
+
+        attendanceSummaryBody.innerHTML = sortedRecords
             .map((record) => {
                 return `<tr><td>${record.name}</td><td>${record.status}</td><td>${record.date}</td></tr>`;
             })
@@ -267,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <td><span class="${badgeClass}">${item.status}</span></td>
                             <td>
                                 <form class="d-flex flex-column gap-2 payment-form" data-name="${item.name.trim().toLowerCase()}">
-                                    <input type="number" class="form-control form-control-sm payment-paid-input" data-name="${item.name.trim().toLowerCase()}" value="${inputValue}" min="0" max="${item.sessions}">
+                                    <input type="number" class="form-control form-control-sm payment-paid-input" data-name="${item.name.trim().toLowerCase()}" value="${inputValue}" min="0" max="$[...]
                                     <small class="text-muted">Hari dibayar</small>
                                     <button type="submit" class="btn btn-sm btn-outline-primary">Submit</button>
                                 </form>
